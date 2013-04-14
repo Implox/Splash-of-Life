@@ -50,14 +50,22 @@ type Rule (weights : int[], lifeMin : int, birthMin : int, lifeMax : int) =
 /// Creates a random rule (untested) for a simulation.
 let randomRule () =
     let weights = Array.zeroCreate 8
-    let mutable total = 0
+    let baseWeight = random.Next 30 - 10
+    let randomWeight = random.Next 20
+
+    // Apply base and random weights.
     for i = 0 to 7 do
-        let value = random.Next 10
-        weights.[i] <- value
-        total <- total + value
-    let lifeMin = 1 + random.Next (total / 3)
-    let birthMin = lifeMin + random.Next (total / 3)
-    let lifeMax = birthMin + random.Next (total - birthMin)
+        weights.[i] <- baseWeight + random.Next randomWeight
+
+    // Apply individual weights.
+    while random.NextDouble () < 0.4 do
+        let i = random.Next 8
+        weights.[i] <- weights.[i] + random.Next 40 - 20
+
+    // Create rule parameters.
+    let lifeMin = random.Next 30
+    let birthMin = max lifeMin 1 + random.Next 30
+    let lifeMax = birthMin + random.Next 30
     Rule (weights, lifeMin, birthMin, lifeMax)
 
 /// The rule for Conway's game of life.
