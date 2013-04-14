@@ -16,10 +16,6 @@ let random = Random ()
 type Cell = 
     | Dead = 0
     | Young = 1
-    | Old = 75
-
-/// The number of ages possible for a cell.
-let ageRange = int Cell.Old - int Cell.Young + 1
 
 /// Determines the age of a live cell.
 let age (cell : Cell) = int cell - 1
@@ -155,7 +151,6 @@ let test (rule : Rule) =
         ageDeviation <- ageDeviation / float population
         (-0.3 * log (float births) +
             0.5 * log ageDeviation +
-            0.7 * log (goodness 0.3 (averageAge / float ageRange)) +
             0.8 * log (goodness 0.2 density) +
             1.3 * log (goodness 0.1 normalizedChangedDensity))
 
@@ -167,13 +162,16 @@ let rec randomGoodRule threshold =
 /// Defines a color scheme for a simulation.
 type Scheme = (uint8 * uint8 * uint8)[]
 
+/// The number of unique colors in a scheme.
+let schemeSize = 75
+
 /// Creates a random color scheme.
 let randomScheme () : Scheme =
     let mults = Array.zeroCreate 6
     for i = 0 to 5 do
         mults.[i] <- random.NextDouble ()
-    Array.init ageRange (fun i ->
-        let x = float i / float ageRange
+    Array.init schemeSize (fun i ->
+        let x = float i / float schemeSize
         let p = x * 2.0 * Math.PI
         let r = cos (2.0 * p * mults.[0] + 2.0 * Math.PI * mults.[3]) * 0.5 + 0.5
         let g = cos (2.0 * p * mults.[1] + 2.0 * Math.PI * mults.[4]) * 0.5 + 0.5
@@ -204,7 +202,7 @@ type Window () as this =
     let mutable rule = gol
     let mutable colors = randomScheme ()
     let mutable world = randomWorld width height 0.1
-    let mutable nextRule = Unchecked.defaultof<Rule>
+    let mutable nextRule = gol
 
     member this.Update () =
         let getNextRule = new Thread (fun () -> nextRule <- randomGoodRule 0.0)
@@ -233,7 +231,7 @@ type Window () as this =
             for i = 0 to width - 1 do
                 let ptr = NativePtr.add ptr (i * 3 + j * bitmapData.Stride)
                 if world.[i, j] <> Cell.Dead then
-                    let r, g, b = colors.[(age world.[i, j]) % int Cell.Old]
+                    let r, g, b = colors.[age world.[i, j] % schemeSize]
                     NativePtr.set ptr 0 b
                     NativePtr.set ptr 1 g
                     NativePtr.set ptr 2 r
