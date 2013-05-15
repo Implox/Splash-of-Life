@@ -190,7 +190,7 @@ type Window () as this =
     let bitmap = new Bitmap (width, height)
 
     do
-        this.Text <- "Herp of Derp"
+        this.Text <- "Splash of Life"
         this.ClientSize <- new Size (width * scale, height * scale)
         this.FormBorderStyle <- FormBorderStyle.Fixed3D
         this.StartPosition <- FormStartPosition.CenterScreen
